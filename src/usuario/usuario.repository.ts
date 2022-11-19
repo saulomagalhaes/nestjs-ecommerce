@@ -5,6 +5,18 @@ import { UsuarioEntity } from './usuario.entity';
 export class UsuarioRepository {
   private _usuarios: UsuarioEntity[] = [];
 
+  private buscaPorId(id: string) {
+    const possivelUsuario = this._usuarios.find(
+      (usuarioSalvo) => usuarioSalvo.id === id,
+    );
+
+    if (!possivelUsuario) {
+      new HttpException('Usuário não existe', HttpStatus.NOT_FOUND);
+    }
+
+    return possivelUsuario;
+  }
+
   async salvar(usuario: UsuarioEntity) {
     this._usuarios.push(usuario);
   }
@@ -22,22 +34,24 @@ export class UsuarioRepository {
   }
 
   async atualiza(id: string, dadosDeAtualizacao: Partial<UsuarioEntity>) {
-    const possivelUsuario = this._usuarios.find(
-      (usuarioSalvo) => usuarioSalvo.id === id,
-    );
-
-    if (!possivelUsuario) {
-      new HttpException('Usuário não existe', HttpStatus.NOT_FOUND);
-    }
+    const usuario = this.buscaPorId(id);
 
     Object.entries(dadosDeAtualizacao).forEach(([chave, valor]) => {
       if (chave === 'id') {
         return;
       }
 
-      possivelUsuario[chave] = valor;
+      usuario[chave] = valor;
     });
 
-    return possivelUsuario;
+    return usuario;
+  }
+
+  async remove(id: string) {
+    const usuario = this.buscaPorId(id);
+    this._usuarios = this._usuarios.filter(
+      (usuarioSalvo) => usuarioSalvo.id !== id,
+    );
+    return usuario;
   }
 }
